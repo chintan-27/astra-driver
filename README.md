@@ -99,8 +99,18 @@ Then: `sudo udevadm control --reload && sudo udevadm trigger`
 
 ### Windows
 
-Install [Zadig](https://zadig.akeo.ie/), select **ASTRA Pro** (PID 0403),
-install **WinUSB**, then run your Python script normally.
+One-time setup (requires admin, then normal user access forever after):
+
+```powershell
+# In an elevated PowerShell prompt:
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\scripts\install_winusb.ps1
+```
+
+The script downloads Zadig, opens it for you, and confirms the install.
+After that, unplug/replug the camera and use `astra-ir-view` as a normal user.
+
+Alternatively, run [Zadig](https://zadig.akeo.ie/) manually, select **Orbbec Astra Pro** (PID 0403), and install **WinUSB**.
 
 ## How it works
 
