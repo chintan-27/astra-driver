@@ -11,8 +11,8 @@ raw USB traffic. No compiled extensions, no kernel drivers.
 |--------|---------|
 | Orbbec Astra Pro depth/IR sensor | `2BC5:0403` |
 
-The color camera (`2BC5:0501`) is a standard UVC webcam — use OpenCV's
-`VideoCapture` directly.
+The color camera (`2BC5:0501`) is a standard UVC webcam — accessed via `read_color()`
+(requires `opencv-python`).
 
 ## Install
 
@@ -32,6 +32,7 @@ from astra_raw import AstraIRCamera
 with AstraIRCamera() as cam:
     ir    = cam.read_ir()        # (480, 640) uint16 — raw Y11 values
     depth = cam.read_depth_mm()  # (480, 640) float32 — millimetres (0 = invalid)
+    color = cam.read_color()     # (480, 640, 3) uint8 BGR, or None if unavailable
 ```
 
 ## CLI

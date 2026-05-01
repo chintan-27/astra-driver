@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "orbbec-astra-raw"
-version = "0.1.0"
+version = "0.2.0"
 description = "Unofficial pure-Python driver for the Orbbec Astra Pro IR/depth sensor"
 readme = "README.md"
 license = { text = "MIT" }

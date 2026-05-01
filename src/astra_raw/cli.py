@@ -68,11 +68,6 @@ def cmd_view():
             u8 = cv2.medianBlur(u8, 3)
         return cv2.cvtColor(u8, cv2.COLOR_GRAY2BGR)
 
-    color_cap = cv2.VideoCapture(0)
-    if color_cap.isOpened():
-        color_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        color_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
     print("astra-ir-view  Q=quit S=save G/H=γ J/K=lo N/M=hi U=median C=CLAHE T=temporal P=speckle")
 
     with AstraIRCamera() as cam:
@@ -95,12 +90,7 @@ def cmd_view():
             depth_col = colorize_depth(depth)
             ir_bgr_   = _ir_bgr(frame)
 
-            if color_cap.isOpened():
-                color_cap.grab()
-                ret, c = color_cap.read()
-                color_bgr = cv2.resize(c, (W, H)) if ret else np.zeros((H, W, 3), np.uint8)
-            else:
-                color_bgr = np.zeros((H, W, 3), np.uint8)
+            color_bgr = cam.read_color() or np.zeros((H, W, 3), np.uint8)
 
             vd = (depth > 0) & (depth < 8000)
             rng = (f"{int(depth[vd].min())}-{int(depth[vd].max())}mm"
@@ -135,8 +125,6 @@ def cmd_view():
             elif key == ord('p'): speckle  = not speckle
 
     cv2.destroyAllWindows()
-    if color_cap.isOpened():
-        color_cap.release()
 
 
 # ── astra-ir-save ─────────────────────────────────────────────────────────────

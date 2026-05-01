@@ -35,13 +35,17 @@ class AstraIRCamera:
     ----------
     reads_per_blob : int
         Number of 16 KB USB reads accumulated before attempting frame decode.
-        Lower = higher CPU, possibly higher frame rate.
-        Higher = lower CPU, slightly more latency per frame.
+    color_index : int | None
+        OpenCV VideoCapture index for the color camera (2BC5:0501).
+        Pass None to disable color. Defaults to 0.
     """
 
-    def __init__(self, reads_per_blob: int = _READS_PER_BLOB):
+    def __init__(self, reads_per_blob: int = _READS_PER_BLOB,
+                 color_index: 'int | None' = 0):
         self._reads_per_blob = reads_per_blob
+        self._color_index    = color_index
         self._dev            = None
+        self._color_cap      = None
         self._thread         = None
         self._stop           = threading.Event()
         self._q: queue.Queue = queue.Queue(maxsize=_QUEUE_MAXSIZE)
@@ -53,6 +57,16 @@ class AstraIRCamera:
         self._dev = find_device()
         open_device(self._dev)
         run_init(self._dev)
+        if self._color_index is not None:
+            try:
+                import cv2
+                cap = cv2.VideoCapture(self._color_index)
+                if cap.isOpened():
+                    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                    self._color_cap = cap
+            except ImportError:
+                pass
         self._stop.clear()
         self._thread = threading.Thread(target=self._loop, daemon=True)
         self._thread.start()
@@ -63,6 +77,9 @@ class AstraIRCamera:
         if self._thread is not None:
             self._thread.join(timeout=3.0)
             self._thread = None
+        if self._color_cap is not None:
+            self._color_cap.release()
+            self._color_cap = None
         if self._dev is not None:
             try:
                 usb.util.dispose_resources(self._dev)
@@ -110,6 +127,26 @@ class AstraIRCamera:
         if ir is None:
             return None
         return ir_to_depth_mm(ir)
+
+    def read_color(self) -> 'np.ndarray | None':
+        """
+        Return the latest color frame as a (480, 640, 3) uint8 BGR array.
+
+        The color camera (2BC5:0501) is a standard UVC webcam accessed via
+        OpenCV. Requires opencv-python and color_index != None.
+        Returns None if color is unavailable.
+        """
+        if self._color_cap is None or not self._color_cap.isOpened():
+            return None
+        import cv2
+        import numpy as np
+        ret, frame = self._color_cap.read()
+        if not ret:
+            return None
+        h, w = frame.shape[:2]
+        if (h, w) != (480, 640):
+            frame = cv2.resize(frame, (640, 480))
+        return frame
 
     def read_raw_group(self, timeout: float = 5.0) -> 'bytes | None':
         """
