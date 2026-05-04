@@ -85,7 +85,18 @@ def _get_backend():
         ]:
             if pathlib.Path(p).exists():
                 return usb.backend.libusb1.get_backend(find_library=lambda x: p)
-    return usb.backend.libusb1.get_backend()
+    if sys.platform == "win32":
+        try:
+            import libusb_package
+            return libusb_package.get_backend()
+        except ImportError:
+            pass
+    be = usb.backend.libusb1.get_backend()
+    if be is None:
+        raise RuntimeError(
+            "libusb backend not found. On Windows: pip install libusb-package"
+        )
+    return be
 
 
 def find_device():
