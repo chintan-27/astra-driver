@@ -88,7 +88,9 @@ def _get_backend():
     if sys.platform == "win32":
         try:
             import libusb_package
-            return libusb_package.get_backend()
+            return usb.backend.libusb1.get_backend(
+                find_library=libusb_package.find_library
+            )
         except ImportError:
             pass
     be = usb.backend.libusb1.get_backend()

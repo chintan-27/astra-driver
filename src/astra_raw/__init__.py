@@ -15,7 +15,7 @@ from .camera import AstraIRCamera
 from .packets import decode_y11_msb, parse_packet_stream, decode_frame
 from .ir import ir_to_depth_mm, stretch, colorize_ir, colorize_depth
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __all__ = [
     "AstraIRCamera",
     "decode_y11_msb",
